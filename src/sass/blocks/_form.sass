@@ -9,8 +9,6 @@
 		grid-template: 45px / 1fr 186px
 		justify-content: space-between
 		gap: 25px
-		&_dark
-			animation: form_submit 4s linear 1
 	label
 		border-radius: 10px
 		position: absolute
@@ -37,23 +35,8 @@
 			font-weight: 500
 			font-size: 16px
 	&__triggers
-		grid-column: 2 / 3 
 		display: flex
-		justify-content: flex-end
-	&__textarea 
-		position: relative
-		grid-column: 1 / 3
-		textarea
-			background-color: $bg-color
-			border: solid 1px $white-color
-			border-radius: 15px
-			width: 100%
-			height: 100%
-			padding: 20px
-			resize: none
-			color: $white-color
-			font-weight: 500
-			font-size: 16px
+		justify-content: center
 	&__button
 		height: 45px
 		background: $main-color

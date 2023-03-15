@@ -3,23 +3,15 @@
 @media (max-width: 992px)
 	.form
 		&__wrapper
-			grid-template: 45px 100px 45px / repeat(2, 285px)
+			grid-template: 45px / 1fr 186px
 @media (max-width: 768px)
 	.form
 		&__wrapper
-			grid-template: 45px 100px 45px / repeat(2, 210px)
+			grid-template: repeat(2, 45px)/ 1fr
 @media (max-width: 576px) 
 	.form
 		&__wrapper
-			gap: 40px
-			grid-template: repeat(2, 45px) 100px 45px / repeat(1, 1fr)
-		&__triggers
-			grid-column: auto
-			justify-content: center 
-		&__textarea
-			grid-column: auto
-			textarea
-				font-size: 14px
+			rid-template: repeat(2, 45px)/ 1fr
 		&__input
 			input
 				font-size: 14px

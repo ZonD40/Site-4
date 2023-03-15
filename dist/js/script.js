@@ -3,73 +3,100 @@ const form = document.querySelector('.form');
 form.substring.addEventListener('input', () => deleteErrorMessage('substring'));
 
 document.body.addEventListener('keydown', (e) => {
-	if (e.code == 'Enter' &&  e.target.nodeName != 'INPUT') handler();
+	if (e.code == 'Enter' && e.target.nodeName != 'INPUT') handler();
 })
 form.addEventListener('submit', handler);
 
 async function handler(e) {
 	e?.preventDefault();
 
-	// const li = document.createElement('li');
-	// li.classList.add('comment');
+	if ( !validateInput('substring') ) return;
 
-	// let isValidate = true;
-	// isValidate = validateInput('name') && isValidate;
-	// isValidate = validateInput('datepicker') && isValidate;
-	// isValidate = validateInput('text') && isValidate;
-	// if ( !isValidate ) return;
+	const url = new URL('https://api.github.com/search/repositories');
+	url.searchParams.set('per_page', 10);
+	url.searchParams.set('q', form.substring.value);
 
-	// const elements = ['name', 'date', 'text', 'like', 'delete'];
-	// data = {
-	// 	form: form,
-	// 	datapicker: form.datepicker,
-	// 	likeIcon: likeSvg,
-	// 	deleteIcon: deleteSvg,
-	// }
-	// elements.forEach( (element) => li.append(createElement(element, form, form.datepicker, likeSvg, deleteSvg)) );
+	const arrayOfRepo = await fetch(url)
+						.then(response => response.json())
+						.then(obj => obj.items);
 
-	// li.children[3].addEventListener('click', toggleLike);
-	// li.children[4].addEventListener('click', deleteElement);
 
-	// document.querySelector('.comments').append(li);
+	arrayOfRepo.forEach((repo) => {
+		const li = document.createElement('li');
+		li.classList.add('repo');		
+	
+		const elements = [
+			['name', 'name'],
+			['owner', 'owner'],
+			['createDate', 'data'],
+			['updateDate', 'data'],
+			['language', 'data']
+		];
+		elements.forEach( ([element, selector]) => li.append(createElement(element, selector, repo)) );
+	
+		document.querySelector('.results').append(li);
+	});
 
-	// form.reset();
 
-	const response = await fetch('https://api.github.com/search/repositories?q=git');
+	form.reset();
 
-	console.log(await response.json());
 }
 
 
-function createElement(elementType, form, datepicker, likeIcon, deleteIcon) {
-	const div = document.createElement('div');
+function createElement(elementType, elementSelector, repo) {
+	const div = elementType != 'name' ? document.createElement('div') : null;
 
-	div.classList.add(`comment__${elementType}`);
+	div?.classList.add(`repo__${elementSelector}`);
 
 	switch (elementType) {
-		case 'date':
-			const time = new Date(),
-				  hourse = time.getHours();
-				  date = datepicker.value;
-			let minutes = time.getMinutes();
-
-			minutes = minutes < 10 ? `0${minutes}` : minutes;
-		
-			div.textContent = `${getFormatedDate(date)}, ${hourse}:${minutes}`;
-			break;
-
 		case 'name':
-		case 'text':
-			div.textContent = form[elementType].value;
+			const nameLink = document.createElement('a');
+			nameLink.classList.add(`repo__${elementSelector}`);
+
+			nameLink.textContent = repo.name;
+			nameLink.href = repo.html_url;
+			nameLink.target = '_blank';
+
+			return nameLink;
+			break;
+
+		case 'owner':
+			div.textContent = 'Владелец: ';
+
+			const ownerLink = document.createElement('a');
+			ownerLink.textContent = repo.owner.login;
+			ownerLink.href = repo.owner.html_url;
+			ownerLink.target = '_blank';
+			
+
+			div.append(ownerLink);
+			break;
+
+		case 'createDate':
+			div.textContent = 'Дата создания: ';
+
+			const createSpan = document.createElement('span');
+			createSpan.textContent = getFormatedDate(repo.created_at);
+
+			div.append(createSpan);
 			break;
 		
-		case 'like':
-			div.innerHTML = likeIcon;
-			div.dataset.liked = 'false';
+		case 'updateDate':
+			div.textContent = 'Дата обновления: ';
+
+			const updateSpan = document.createElement('span');
+			updateSpan.textContent = getFormatedDate(repo.updated_at);
+
+			div.append(updateSpan);
 			break;
 		
-		case 'delete':
-			div.innerHTML = deleteIcon;
+		case 'language':
+			div.textContent = 'Язык: ';
+
+			const languageSpan = document.createElement('span');
+			languageSpan.textContent = repo.language ? repo.language : 'No data :(';
+
+			div.append(languageSpan);
 			break;
 	}
 
@@ -77,69 +104,21 @@ function createElement(elementType, form, datepicker, likeIcon, deleteIcon) {
 }
 
 function getFormatedDate(date) {
-	const nowDate = new Date();
-		  day = date.slice(0, 2),
-		  month = date.slice(3, 5),
-		  year = date.slice(6),
-		  divDate = new Date(year, month - 1, day, ...nowDate.toLocaleTimeString('it-IT').slice(0, 8).split(':'));
+	let newDate;
 
-	if ( date == '' || Math.abs(nowDate - divDate) < 10000 ) return 'Сегодня';
-
-	if ( (nowDate > divDate) && (nowDate - divDate < 1000 * 60 * 60 * 24 + 10000) ) return 'Вчера';
+	newDate = date.slice(8, 10) + '.' 
+			+ date.slice(5, 7) + '.'
+			+ date.slice(0, 4);
 	
-	return date;
-}
-
-function toggleLike(e) {
-	if (e.target.nodeName == 'DIV') return;
-
-	const likeDiv = e.target.closest('div');
-
-	if (likeDiv.dataset.liked === 'true')	{
-		likeDiv.innerHTML = likeSvg;
-		likeDiv.style.setProperty('--like-color', '#f5f2e8');
-		
-		likeDiv.dataset.liked = 'false';
-		
-		return;
-	}
-	
-	likeDiv.innerHTML = likeSvgfilled;
-	likeDiv.style.setProperty('--like-color', '#f07b61');
-
-	likeDiv.dataset.liked = 'true';
-}
-
-function deleteElement(e) {
-	if (e.target.nodeName == 'DIV') return;
-
-	e.target.closest('li').remove();
+	return newDate;
 }
 
 function validateInput(inputId) {
 	const input = document.getElementById(inputId);
 
-	switch (inputId) {
-		case 'name':
-			if (input.value.trim().length < 2 || input.value.trim().length >= 40) {
-				addErrorMessage(input, 'Введите корректное имя!')
-				return false;
-			}
-			break;
-		case 'datepicker':
-			regexp = /^(?:(?:31(\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\.)(?:0?[1,3-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/;
-
-			if (input.value.length > 0 && (!input.value.match(regexp) || input.value.length != 10)) {
-				addErrorMessage(input, 'Некорректный формат даты!');
-				return false;
-			}
-			break;
-		case 'text':
-			if (input.value.trim().length < 3) {
-				addErrorMessage(input, 'Слишком короткий комментарий!')
-				return false;
-			}
-			break;
+	if (input.value.trim().length < 2 || input.value.trim().length >= 150) {
+		addErrorMessage(input, 'Введите корректную подстроку!')
+		return false;
 	}
 
 	return true;

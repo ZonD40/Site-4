@@ -1,0 +1,41 @@
+.results 
+	list-style-type: none
+	padding: 0
+	width: 100%
+.repo
+	border: solid 1px $white-color
+	border-radius: 15px
+	width: 100%
+	padding: 20px 40px
+	display: grid
+	grid-template: repeat(3, 1fr) / repeat(2, 1fr)
+	gap: 20px
+	margin-bottom: 20px
+	&__name
+		color: $white-color
+		font-weight: 700
+		font-size: 18px
+		text-decoration: none
+		word-wrap: break-word
+		&:hover
+			color: $white-color
+			text-decoration: underline
+	&__owner
+		color: $main-color
+		font-weight: 500
+		font-size: 16px
+		a
+			color: $white-color
+			font-weight: 700
+			text-decoration: none
+			&:hover
+				color: $white-color
+				text-decoration: underline
+	&__data
+		color: $main-color
+		font-weight: 500
+		font-size: 16px
+		span
+			color: $white-color
+			font-weight: 700
+	
