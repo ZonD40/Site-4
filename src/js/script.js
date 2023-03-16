@@ -9,18 +9,34 @@ form.addEventListener('submit', handler);
 
 async function handler(e) {
 	e?.preventDefault();
+	const results = document.querySelector('.results');
 
 	if ( !validateInput('substring') ) return;
+
+	toggleLoadOverlay();
 
 	const url = new URL('https://api.github.com/search/repositories');
 	url.searchParams.set('per_page', 10);
 	url.searchParams.set('q', form.substring.value);
 
+	let isError = false
 	const arrayOfRepo = await fetch(url)
 						.then(response => response.json())
-						.then(obj => obj.items);
+						.then(obj => obj.items)
+						.catch(() => {
+							results.textContent = 'К сожалению, произошла ошибка, попробуйте позже'
+							toggleLoadOverlay();
+							isError = true;
+						});
+	if (isError) return;					
 
+	if (arrayOfRepo.length == 0) {
+		results.textContent = 'По вашему запросу ничего не найдено';
+		toggleLoadOverlay();
+		return;
+	}					
 
+	results.innerHTML = '';
 	arrayOfRepo.forEach((repo) => {
 		const li = document.createElement('li');
 		li.classList.add('repo');		
@@ -34,9 +50,11 @@ async function handler(e) {
 		];
 		elements.forEach( ([element, selector]) => li.append(createElement(element, selector, repo)) );
 	
-		document.querySelector('.results').append(li);
+		
+		results.append(li);
 	});
 
+	toggleLoadOverlay();
 
 	form.reset();
 
@@ -94,7 +112,7 @@ function createElement(elementType, elementSelector, repo) {
 			div.textContent = 'Язык: ';
 
 			const languageSpan = document.createElement('span');
-			languageSpan.textContent = repo.language ? repo.language : 'No data :(';
+			languageSpan.textContent = repo.language ? repo.language : 'Нет данных :(';
 
 			div.append(languageSpan);
 			break;
@@ -143,4 +161,24 @@ function deleteErrorMessage(inputName) {
 	errors.forEach((e) => {
 		if (e.dataset.for == inputName) e.remove();
 	})
+}
+
+function toggleLoadOverlay() {
+	const isLoading = document.querySelector('.load');
+	if (isLoading) {
+		isLoading.remove();
+		return;
+	}
+	
+
+	const loadOverlay = document.createElement('div');
+	loadOverlay.classList.add('load');
+
+	const loadRing = document.createElement('img');
+	loadRing.src = './icon/load-ring.svg';
+	loadRing.alt = 'load-ring';
+
+	loadOverlay.append(loadRing);
+
+	document.body.append(loadOverlay);
 }
